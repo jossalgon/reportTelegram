@@ -7,10 +7,15 @@ ReportTelegram is a telegram bot that helps you to keep the group clean by a rep
   ```
   [Telegram]
   token_id = YOUR_TELEGRAM_BOT_TOKEN
-  db_dir = data.db (OR YOUR DATABASE NAME)
   link = YOUR_GROUP_LINK
   group_id =  YOUR_GROUP_ID
   admin_id = THE_ADMIN_ID
+  
+  [Database]
+  DB_HOST = YOUR_DB_HOST
+  DB_USER = YOUR_DB_USER
+  DB_PASS = YOUR_DB_PASS
+  DB_NAME = YOUR_DB_NAME
   ```
 
 2. Change the "send_report" (reportBot.py) commands handler to usernames of your group.

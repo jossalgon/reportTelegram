@@ -59,6 +59,7 @@ while True:
 
         def main():
             try:
+                utils.create_database()
                 for u in utils.get_userIds():
                     bot.unban_chat_member(group_id, u)
             except Exception as exception:

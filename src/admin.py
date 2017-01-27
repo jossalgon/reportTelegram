@@ -13,7 +13,7 @@ group_id = variables.group_id
 class Admin:
     def set_ban_time_by_bot(self, message):
         new_time = message.text[6::]
-        if new_time.isdigit() and new_time > 0:
+        if new_time.isdigit() and int(new_time) > 0:
             variables.ban_time = int(new_time)
             m, s = divmod(variables.ban_time, 60)
             ban_time_text = '%01d:%02d' % (m, s)
@@ -21,7 +21,7 @@ class Admin:
 
     def set_num_reports_by_bot(self, message):
         new_reports = message.text[10::]
-        if new_reports.isdigit() and new_reports > 0:
+        if new_reports.isdigit() and int(new_reports) > 0:
             variables.num_reports = int(new_reports)
             bot.send_message(group_id, 'REPORTES A {0}'.format(variables.num_reports))
 
