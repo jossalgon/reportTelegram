@@ -1,8 +1,19 @@
 # ReportTelegram
 ReportTelegram is a telegram bot that helps you to keep the group clean by a report system with kicks and ban times.
 
-## Installation
-1. Create a config.ini file with:
+## Installing
+1. Install or upgrade reportTelegram from pip:
+  ```
+  $ pip install reportTelegram --upgrade
+  ```
+Or you can install from source:
+  ```
+  $ git clone https://github.com/jossalgon/reportTelegram.git
+  $ cd reportTelegram
+  $ python setup.py install
+  ```
+
+2. Create a config.ini file:
 
   ```
   [Telegram]
@@ -18,24 +29,20 @@ ReportTelegram is a telegram bot that helps you to keep the group clean by a rep
   DB_NAME = YOUR_DB_NAME
   ```
 
-2. Change the "send_report" (reportBot.py) commands handler to usernames of your group.
-    ```
-    @bot.message_handler(
-            commands=['Mark', 'Charlie', 'Alex'],
-            func=lambda msg: ...)
-        def send_report(message):
-           ...
-    ```
-
-3. Install requirements
+3. Run the bot
   ```
-  sudo pip install -r requirements.txt
+  python3 -m reportTelegram
   ```
 
-4. Run the bot
-  ```
-  python3 reportBot.py &
-  ```
+4. Populate database
+    
+    Populate the Users table with columns UserId and Name you want to use to report.
+
+5. Restart the bot
+
+    Restart the bot to apply the new report commands
+
+
 
 ## Commands
 Command | Uses
@@ -44,8 +51,8 @@ Command | Uses
 /stats | Reply with report stats
 /expulsados | Show a kicked top
 /who | Reply with the users that you reported
-/reportes n | Set max reports to n (where n is a number)
-/time n | Set kick time to n (where n is the number of seconds)
+/reports n | Set max reports to n (where n is a number)
+/bantime n | Set kick time to n (where n is the number of seconds)
 /user1 | Report user1
 /user2 | Report user2
 /user3 | Report user3

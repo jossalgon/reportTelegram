@@ -1,2 +1,2 @@
-pyTelegramBotAPI
+python-telegram-bot
 pymysql
