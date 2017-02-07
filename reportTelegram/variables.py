@@ -2,10 +2,13 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini')
+# config = configParser.SafeConfigParser({'nothingThere': 'lalalalala'}
 
 link = config['Telegram']['link']
 group_id = int(config['Telegram']['group_id'])
 admin_id = int(config['Telegram']['admin_id'])
+sticker = config['Telegram']['sticker']
+
 
 DB_HOST = config['Database']['DB_HOST']
 DB_USER = config['Database']['DB_USER']

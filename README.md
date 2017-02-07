@@ -21,6 +21,7 @@ Or you can install from source:
   link = YOUR_GROUP_LINK
   group_id =  YOUR_GROUP_ID
   admin_id = THE_ADMIN_ID
+  sticker = banned
   
   [Database]
   DB_HOST = YOUR_DB_HOST

@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
-
+import io
 import logging
+import pkgutil
 import threading
 import time
 
@@ -12,6 +13,7 @@ from reportTelegram import variables
 
 admin_id = variables.admin_id
 group_id = variables.group_id
+STICKER = variables.sticker
 
 DB_HOST = variables.DB_HOST
 DB_USER = variables.DB_USER
@@ -102,6 +104,12 @@ def counter(bot, name, reported):
         with con.cursor() as cur:
             cur.execute('UPDATE Flamers SET Kicks = Kicks + 1 WHERE UserId = %s', (str(reported),))
             con.commit()
+            sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('reportTelegram', 'data/stickers/%s.webp' % STICKER)))
+            sti2 = io.BufferedReader(io.BytesIO(pkgutil.get_data('reportTelegram', 'data/stickers/%s.webp' % STICKER)))
+            bot.send_sticker(variables.group_id, sti)
+            bot.send_sticker(reported, sti2)
+            sti.close()
+            sti2.close()
             msg = bot.send_message(reported, text)
 
             while ban_time > 0:
