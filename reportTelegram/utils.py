@@ -68,31 +68,6 @@ def is_from_group(user_id):
         return result
 
 
-def get_userIds():
-    user_ids = []
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
-    try:
-        with con.cursor() as cur:
-            cur.execute('SELECT UserId FROM Users')
-            rows = cur.fetchall()
-            for row in rows:
-                user_ids.append(row[0])
-    except Exception:
-        logger.error('Fatal error in is_from_group', exc_info=True)
-    finally:
-        if con:
-            con.close()
-        return user_ids
-
-
-def get_usernames(bot):
-    usernames = {}
-    for user_id in get_userIds():
-        username = bot.get_chat_member(GROUP_ID, user_id).user.username
-        usernames['@%s' % username] = user_id
-    return usernames
-
-
 def get_names():
     names = []
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
