@@ -2,7 +2,6 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-# config = configParser.SafeConfigParser({'nothingThere': 'lalalalala'}
 
 link = config['Telegram']['link']
 group_id = int(config['Telegram']['group_id'])

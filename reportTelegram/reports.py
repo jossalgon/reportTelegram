@@ -93,12 +93,16 @@ def who(user_id):
             con.close()
 
 
-def counter(bot, name, reported):
-    ban_time = variables.ban_time
-    m, s = divmod(ban_time, 60)
-    text = 'Expulsado durante: %02d:%02d' % (m, s)
+def counter(bot, user_data, name, reported):
     bot.send_message(group_id, 'A tomar por culo %s' % name)
-    bot.kick_chat_member(group_id, reported)
+    if 'ban_time' in user_data and user_data['ban_time'] > 0:
+        user_data['ban_time'] += variables.ban_time
+        bot.kick_chat_member(group_id, reported, until_date=time.time()+user_data['ban_time'])
+        return True
+    user_data['ban_time'] = variables.ban_time
+    m, s = divmod(user_data['ban_time'], 60)
+    text = 'Expulsado durante: %02d:%02d' % (m, s)
+    bot.kick_chat_member(group_id, reported, until_date=time.time()+user_data['ban_time'])
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
         with con.cursor() as cur:
@@ -112,13 +116,12 @@ def counter(bot, name, reported):
             sti2.close()
             msg = bot.send_message(reported, text)
 
-            while ban_time > 0:
+            while user_data['ban_time'] > 0:
                 time.sleep(1)
-                ban_time -= 1
-                m, s = divmod(ban_time, 60)
+                user_data['ban_time'] -= 1
+                m, s = divmod(user_data['ban_time'], 60)
                 text = 'Expulsado durante: %02d:%02d' % (m, s)
                 bot.edit_message_text(text, chat_id=reported, message_id=msg.message_id)
-            bot.unban_chat_member(group_id, reported)
             cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
             button = InlineKeyboardButton('Invitación', url=variables.link)
             markup = InlineKeyboardMarkup([[button]])
@@ -131,7 +134,7 @@ def counter(bot, name, reported):
             con.close()
 
 
-def send_report(bot, user_id, reported):
+def send_report(bot, user_data, user_id, reported):
     name = utils.get_name(reported)
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
@@ -141,12 +144,15 @@ def send_report(bot, user_id, reported):
             cur.execute('SELECT COUNT(*) FROM Reports WHERE Reported = %s AND UserId = %s',
                         (str(reported), str(user_id)))
             already_reported = bool(cur.fetchone()[0])
-            if num_reportes == variables.num_reports:  # Si ya tiene 5 reportes
+            if bot.get_chat_member(group_id, reported).status == 'kicked':
                 bot.send_message(group_id, 'Ensañamiento!!!')
+            elif num_reportes == variables.num_reports:  # Si no está kicked pero tiene los 5 reportes
+                cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
+                bot.send_message(group_id, 'Limpiados reportes a %s por caida de servidor' % name)
             elif not already_reported and user_id != reported:
                 if num_reportes == (variables.num_reports - 1):  # si le queda un reporte para ser expulsado
                     cur.execute('INSERT INTO Reports VALUES(%s,%s)', (str(reported), str(user_id)))
-                    thr1 = threading.Thread(target=counter, args=(bot, name, reported))
+                    thr1 = threading.Thread(target=counter, args=(bot, user_data, name, reported))
                     thr1.start()
                 elif num_reportes < (variables.num_reports - 1):  # si le quedan mas de un reporte para ser expulsado
                     cur.execute('INSERT INTO Reports VALUES(%s,%s)', (str(reported), str(user_id)))
