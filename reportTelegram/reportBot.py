@@ -28,7 +28,7 @@ def start(bot, update):
     bot.sendMessage(chat_id=message.chat_id, text='Welcome!', reply_to_message_id=message.message_id)
 
 
-def report(bot, update, user_data):
+def report(bot, update):
     message = update.message
     if not utils.filter_report(message):
         return False
@@ -36,7 +36,7 @@ def report(bot, update, user_data):
     command = message.text.split('@')[0]
     name = command.replace('/', '').capitalize()
     reported = utils.get_user_id(name)
-    reports.send_report(bot, user_data, user_id, reported)
+    reports.send_report(bot, user_id, reported)
 
 
 def stats(bot, update):
@@ -93,6 +93,7 @@ def main():
     utils.create_database()
     updater = Updater(token=TG_TOKEN)
     dp = updater.dispatcher
+    variables.user_data_dict = dp.user_data
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('stats', stats))
@@ -102,7 +103,7 @@ def main():
     dp.add_handler(CommandHandler('bantime', set_ban_time, pass_args=True))
 
     for name in utils.get_names():
-        dp.add_handler(CommandHandler(name.lower(), report, pass_user_data=True))
+        dp.add_handler(CommandHandler(name.lower(), report))
 
     dp.add_error_handler(log_error)
 

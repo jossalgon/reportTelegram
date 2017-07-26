@@ -93,11 +93,15 @@ def who(user_id):
             con.close()
 
 
-def counter(bot, user_data, name, reported):
+def counter(bot, name, reported):
+    user_data = variables.user_data_dict[reported]
     bot.send_message(group_id, 'A tomar por culo %s' % name)
     if 'ban_time' in user_data and user_data['ban_time'] > 0:
         user_data['ban_time'] += variables.ban_time
         bot.kick_chat_member(group_id, reported, until_date=time.time()+user_data['ban_time'])
+        m, s = divmod(variables.ban_time, 60)
+        text = 'Contador actualizado: +%02d:%02d' % (m, s)
+        bot.send_message(reported, text)
         return True
     user_data['ban_time'] = variables.ban_time
     m, s = divmod(user_data['ban_time'], 60)
@@ -134,7 +138,7 @@ def counter(bot, user_data, name, reported):
             con.close()
 
 
-def send_report(bot, user_data, user_id, reported):
+def send_report(bot, user_id, reported):
     name = utils.get_name(reported)
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
@@ -152,7 +156,7 @@ def send_report(bot, user_data, user_id, reported):
             elif not already_reported and user_id != reported:
                 if num_reportes == (variables.num_reports - 1):  # si le queda un reporte para ser expulsado
                     cur.execute('INSERT INTO Reports VALUES(%s,%s)', (str(reported), str(user_id)))
-                    thr1 = threading.Thread(target=counter, args=(bot, user_data, name, reported))
+                    thr1 = threading.Thread(target=counter, args=(bot, name, reported))
                     thr1.start()
                 elif num_reportes < (variables.num_reports - 1):  # si le quedan mas de un reporte para ser expulsado
                     cur.execute('INSERT INTO Reports VALUES(%s,%s)', (str(reported), str(user_id)))

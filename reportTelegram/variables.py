@@ -14,5 +14,7 @@ DB_USER = config['Database']['DB_USER']
 DB_PASS = config['Database']['DB_PASS']
 DB_NAME = config['Database']['DB_NAME']
 
+user_data_dict = dict()
+
 num_reports = 5
 ban_time = 300
