@@ -21,6 +21,23 @@ def filter_report(msg):
     return is_from_group(msg.from_user.id) and msg.chat.id == variables.group_id
 
 
+def clear_report_data(reported):
+    user_data = variables.user_data_dict[reported]
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        if 'ban_time' in user_data:
+            del user_data['ban_time']
+
+        with con.cursor() as cur:
+            cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
+    except Exception:
+        logger.error('Fatal error in clear_report_data', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+
+
 def get_name(user_id):
     username = 'Anon'
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)

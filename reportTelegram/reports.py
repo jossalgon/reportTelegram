@@ -95,10 +95,13 @@ def who(user_id):
 
 def counter(bot, name, reported):
     user_data = variables.user_data_dict[reported]
+    chat_member = bot.get_chat_member(group_id, reported)
     bot.send_message(group_id, 'A tomar por culo %s' % name)
-    if 'ban_time' in user_data and user_data['ban_time'] > 0:
-        user_data['ban_time'] += variables.ban_time
-        bot.kick_chat_member(group_id, reported, until_date=time.time()+user_data['ban_time'])
+
+    if chat_member.status == 'kicked':
+        if 'ban_time' in user_data and user_data['ban_time'] > 0:
+            user_data['ban_time'] += variables.ban_time
+        bot.kick_chat_member(group_id, reported, until_date=chat_member.until_date.timestamp()+variables.ban_time)
         m, s = divmod(variables.ban_time, 60)
         text = 'Contador actualizado: +%02d:%02d' % (m, s)
         bot.send_message(reported, text)
@@ -151,7 +154,7 @@ def send_report(bot, user_id, reported):
             if bot.get_chat_member(group_id, reported).status == 'kicked':
                 bot.send_message(group_id, 'Ensañamiento!!!')
             elif num_reportes == variables.num_reports:  # Si no está kicked pero tiene los 5 reportes
-                cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
+                utils.clear_report_data(reported)
                 bot.send_message(group_id, 'Limpiados reportes a %s por caida de servidor' % name)
             elif not already_reported and user_id != reported:
                 if num_reportes == (variables.num_reports - 1):  # si le queda un reporte para ser expulsado
