@@ -4,7 +4,6 @@ import logging
 import pkgutil
 import threading
 import time
-
 import pymysql
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -49,6 +48,20 @@ def get_stats():
     finally:
         if con:
             con.close()
+
+
+def send_stats(bot, update, message_id=None, chat_id=None):
+    message = update.message
+    res = get_stats()
+
+    keyboard = [[InlineKeyboardButton("Actualizar", callback_data='STATS_UPDATE')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if message_id and chat_id:
+        bot.edit_message_text(text=res, chat_id=chat_id, message_id=message_id, reply_markup=reply_markup,
+                              parse_mode='Markdown')
+    else:
+        bot.send_message(message.chat.id, res, parse_mode='Markdown', reply_markup=reply_markup)
 
 
 def get_top_kicks():
@@ -198,3 +211,13 @@ def send_love(bot, user_id, loved):
     finally:
         if con:
             con.commit()
+
+
+def callback_query_handler(bot, update, user_data, job_queue, chat_data):
+    query_data = update.callback_query.data
+    if query_data.startswith('STATS_UPDATE'):
+        if get_stats().strip() == update.effective_message.text_markdown:
+            bot.answer_callback_query(update.callback_query.id, 'Sin cambios')
+        else:
+            send_stats(bot, update, message_id=update.effective_message.message_id, chat_id=update.effective_chat.id)
+            bot.answer_callback_query(update.callback_query.id, 'Actualizado correctamente')

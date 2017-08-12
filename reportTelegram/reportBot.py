@@ -2,7 +2,7 @@
 
 import configparser
 import logging
-
+from telegram.ext import CallbackQueryHandler
 from telegram.ext import Updater, CommandHandler
 
 from reportTelegram import admin
@@ -37,12 +37,6 @@ def report(bot, update):
     name = command.replace('/', '').capitalize()
     reported = utils.get_user_id(name)
     reports.send_report(bot, user_id, reported)
-
-
-def stats(bot, update):
-    message = update.message
-    res = reports.get_stats()
-    bot.send_message(message.chat.id, res, parse_mode='Markdown')
 
 
 def top_kicks(bot, update):
@@ -96,11 +90,13 @@ def main():
     variables.user_data_dict = dp.user_data
 
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('stats', stats))
+    dp.add_handler(CommandHandler('stats', reports.send_stats))
     dp.add_handler(CommandHandler('expulsados', top_kicks))
     dp.add_handler(CommandHandler('who', who))
     dp.add_handler(CommandHandler('reports', set_reports, pass_args=True))
     dp.add_handler(CommandHandler('bantime', set_ban_time, pass_args=True))
+    dp.add_handler(CallbackQueryHandler(reports.callback_query_handler, pass_user_data=True, pass_job_queue=True,
+                                        pass_chat_data=True))
 
     for name in utils.get_names():
         dp.add_handler(CommandHandler(name.lower(), report))
