@@ -28,7 +28,7 @@ def start(bot, update):
     bot.sendMessage(chat_id=message.chat_id, text='Welcome!', reply_to_message_id=message.message_id)
 
 
-def report(bot, update):
+def report(bot, update, job_queue):
     message = update.message
     if not utils.filter_report(message):
         return False
@@ -36,7 +36,7 @@ def report(bot, update):
     command = message.text.split('@')[0]
     name = command.replace('/', '').capitalize()
     reported = utils.get_user_id(name)
-    reports.send_report(bot, user_id, reported)
+    reports.send_report(bot, user_id, reported, job_queue)
 
 
 def top_kicks(bot, update):
@@ -99,7 +99,7 @@ def main():
                                         pass_chat_data=True))
 
     for name in utils.get_names():
-        dp.add_handler(CommandHandler(name.lower(), report))
+        dp.add_handler(CommandHandler(name.lower(), report, pass_job_queue=True))
 
     dp.add_error_handler(log_error)
 

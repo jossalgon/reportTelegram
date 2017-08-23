@@ -106,7 +106,7 @@ def who(user_id):
             con.close()
 
 
-def counter(bot, name, reported):
+def counter(bot, name, reported, job_queue):
     user_data = variables.user_data_dict[reported]
     chat_member = bot.get_chat_member(group_id, reported)
     bot.send_message(group_id, 'A tomar por culo %s' % name)
@@ -130,10 +130,11 @@ def counter(bot, name, reported):
             con.commit()
             sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('reportTelegram', 'data/stickers/%s.webp' % STICKER)))
             sti2 = io.BufferedReader(io.BytesIO(pkgutil.get_data('reportTelegram', 'data/stickers/%s.webp' % STICKER)))
-            bot.send_sticker(variables.group_id, sti)
+            msg_sticker = bot.send_sticker(variables.group_id, sti)
             bot.send_sticker(reported, sti2)
             sti.close()
             sti2.close()
+            job_queue.run_once(utils.remove_message_from_group, 30, context=msg_sticker.message_id)
             msg = bot.send_message(reported, text)
 
             while user_data['ban_time'] > 0:
@@ -154,7 +155,7 @@ def counter(bot, name, reported):
             con.close()
 
 
-def send_report(bot, user_id, reported):
+def send_report(bot, user_id, reported, job_queue):
     name = utils.get_name(reported)
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
@@ -172,7 +173,7 @@ def send_report(bot, user_id, reported):
             elif not already_reported and user_id != reported:
                 if num_reportes == (variables.num_reports - 1):  # si le queda un reporte para ser expulsado
                     cur.execute('INSERT INTO Reports VALUES(%s,%s)', (str(reported), str(user_id)))
-                    thr1 = threading.Thread(target=counter, args=(bot, name, reported))
+                    thr1 = threading.Thread(target=counter, args=(bot, name, reported, job_queue))
                     thr1.start()
                 elif num_reportes < (variables.num_reports - 1):  # si le quedan mas de un reporte para ser expulsado
                     cur.execute('INSERT INTO Reports VALUES(%s,%s)', (str(reported), str(user_id)))

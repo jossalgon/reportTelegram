@@ -102,6 +102,10 @@ def get_names():
         return names
 
 
+def remove_message_from_group(bot, job):
+    bot.delete_message(chat_id=variables.group_id, message_id=job.context)
+
+
 def create_database():
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
