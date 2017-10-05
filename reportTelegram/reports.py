@@ -114,7 +114,7 @@ def counter(bot, name, reported, job_queue):
     if chat_member.status == 'kicked':
         if 'ban_time' in user_data and user_data['ban_time'] > 0:
             user_data['ban_time'] += variables.ban_time
-        bot.kick_chat_member(group_id, reported, until_date=chat_member.until_date.timestamp()+variables.ban_time)
+        bot.kick_chat_member(group_id, reported, until_date=int(chat_member.until_date.timestamp()+variables.ban_time))
         m, s = divmod(variables.ban_time, 60)
         text = 'Contador actualizado: +%02d:%02d' % (m, s)
         bot.send_message(reported, text)
@@ -122,7 +122,7 @@ def counter(bot, name, reported, job_queue):
     user_data['ban_time'] = variables.ban_time
     m, s = divmod(user_data['ban_time'], 60)
     text = 'Expulsado durante: %02d:%02d' % (m, s)
-    bot.kick_chat_member(group_id, reported, until_date=time.time()+user_data['ban_time'])
+    bot.kick_chat_member(group_id, reported, until_date=int(time.time()+user_data['ban_time']))
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
         with con.cursor() as cur:
@@ -144,6 +144,7 @@ def counter(bot, name, reported, job_queue):
                 text = 'Expulsado durante: %02d:%02d' % (m, s)
                 bot.edit_message_text(text, chat_id=reported, message_id=msg.message_id)
             cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
+            bot.unban_chat_member(group_id, reported)
             button = InlineKeyboardButton('Invitación', url=variables.link)
             markup = InlineKeyboardMarkup([[button]])
             bot.send_message(reported, 'Ya puedes entrar %s, usa esta invitación:' % name, reply_markup=markup)
