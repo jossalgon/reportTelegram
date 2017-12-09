@@ -115,6 +115,10 @@ def counter(bot, name, reported, job_queue):
         if 'ban_time' in user_data and user_data['ban_time'] > 0:
             user_data['ban_time'] += variables.ban_time
         bot.kick_chat_member(group_id, reported, until_date=int(chat_member.until_date.timestamp()+variables.ban_time))
+        user_data['unkick_job'].stop()
+        user_data['unkick_job'] = job_queue.run_once(send_invitation, user_data['ban_time'],
+                                                     context={'user_data': user_data, 'reported': reported,
+                                                              'name': name})
         m, s = divmod(variables.ban_time, 60)
         text = 'Contador actualizado: +%02d:%02d' % (m, s)
         bot.send_message(reported, text)
@@ -123,6 +127,8 @@ def counter(bot, name, reported, job_queue):
     m, s = divmod(user_data['ban_time'], 60)
     text = 'Expulsado durante: %02d:%02d' % (m, s)
     bot.kick_chat_member(group_id, reported, until_date=int(time.time()+user_data['ban_time']))
+    user_data['unkick_job'] = job_queue.run_once(send_invitation, user_data['ban_time'],
+                                                 context={'user_data': user_data, 'reported': reported, 'name': name})
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
         with con.cursor() as cur:
@@ -143,17 +149,34 @@ def counter(bot, name, reported, job_queue):
                 m, s = divmod(user_data['ban_time'], 60)
                 text = 'Expulsado durante: %02d:%02d' % (m, s)
                 bot.edit_message_text(text, chat_id=reported, message_id=msg.message_id)
-            cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
-            bot.unban_chat_member(group_id, reported)
-            button = InlineKeyboardButton('Invitación', url=variables.link)
-            markup = InlineKeyboardMarkup([[button]])
-            bot.send_message(reported, 'Ya puedes entrar %s, usa esta invitación:' % name, reply_markup=markup)
+            bot.edit_message_text('Expulsado durante: 00:00', chat_id=reported, message_id=msg.message_id)
     except Exception:
         logger.error('Fatal error in counter', exc_info=True)
     finally:
         if con:
             con.commit()
             con.close()
+
+
+def send_invitation(bot, job):
+    user_data = job.context['user_data']
+    reported = job.context['reported']
+    name = job.context['name']
+    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    try:
+        with con.cursor() as cur:
+            cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
+    except Exception:
+        logger.error('Fatal error in send_invitation', exc_info=True)
+    finally:
+        if con:
+            con.commit()
+            con.close()
+    button = InlineKeyboardButton('Invitación', url=variables.link)
+    markup = InlineKeyboardMarkup([[button]])
+    bot.send_message(reported, 'Ya puedes entrar %s, usa esta invitación:' % name, reply_markup=markup)
+    user_data['ban_time'] = 0
+    del user_data['unkick_job']
 
 
 def send_report(bot, user_id, reported, job_queue):
