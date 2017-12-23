@@ -25,9 +25,8 @@ def clear_report_data(reported):
     user_data = variables.user_data_dict[reported]
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
-        if 'ban_time' in user_data:
-            del user_data['ban_time']
-
+        user_data['ban_time'] = 0
+        del user_data['unkick_job']
         with con.cursor() as cur:
             cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
     except Exception:

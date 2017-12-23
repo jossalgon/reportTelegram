@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='reportTelegram',
-      version='0.3.7',
+      version='0.3.8',
       description='A telegram bot that helps you to keep the group clean by a report system with kicks and ban times.',
       url='https://github.com/jossalgon/reportTelegram',
       author='Jose Luis Salazar Gonzalez',

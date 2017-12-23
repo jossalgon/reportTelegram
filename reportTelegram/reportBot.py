@@ -39,6 +39,17 @@ def report(bot, update, job_queue):
     reports.send_report(bot, user_id, reported, job_queue)
 
 
+def love(bot, update, job_queue):
+    message = update.message
+    if not utils.filter_report(message):
+        return False
+    user_id = message.from_user.id
+    command = message.text.split('@')[0]
+    name = command.replace('/love', '').capitalize()
+    reported = utils.get_user_id(name)
+    reports.send_love(bot, user_id, reported, job_queue)
+
+
 def top_kicks(bot, update):
     message = update.message
     res = reports.get_top_kicks()
@@ -100,6 +111,7 @@ def main():
 
     for name in utils.get_names():
         dp.add_handler(CommandHandler(name.lower(), report, pass_job_queue=True))
+        dp.add_handler(CommandHandler('love' + name.lower(), love, pass_job_queue=True))
 
     dp.add_error_handler(log_error)
 

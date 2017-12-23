@@ -159,24 +159,12 @@ def counter(bot, name, reported, job_queue):
 
 
 def send_invitation(bot, job):
-    user_data = job.context['user_data']
     reported = job.context['reported']
     name = job.context['name']
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
-    try:
-        with con.cursor() as cur:
-            cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
-    except Exception:
-        logger.error('Fatal error in send_invitation', exc_info=True)
-    finally:
-        if con:
-            con.commit()
-            con.close()
+    utils.clear_report_data(reported)
     button = InlineKeyboardButton('Invitación', url=variables.link)
     markup = InlineKeyboardMarkup([[button]])
     bot.send_message(reported, 'Ya puedes entrar %s, usa esta invitación:' % name, reply_markup=markup)
-    user_data['ban_time'] = 0
-    del user_data['unkick_job']
 
 
 def send_report(bot, user_id, reported, job_queue):
@@ -212,7 +200,7 @@ def send_report(bot, user_id, reported, job_queue):
             con.close()
 
 
-def send_love(bot, user_id, loved):
+def send_love(bot, user_id, loved, job_queue):
     name = utils.get_name(loved)
     con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
     try:
@@ -222,8 +210,11 @@ def send_love(bot, user_id, loved):
             cur.execute('SELECT COUNT(*) FROM Reports WHERE Reported = %s AND UserId = %s',
                         (str(loved), str(user_id)))
             already_reported = bool(cur.fetchone()[0])
-            if num_reportes == variables.num_reports:  # Si ya tiene 5 reportes
+            if bot.get_chat_member(group_id, loved).status == 'kicked':
                 bot.send_message(group_id, 'Abrazos!!!')
+            elif num_reportes == variables.num_reports:  # Si no está kicked pero tiene los 5 reportes
+                utils.clear_report_data(loved)
+                bot.send_message(group_id, 'Limpiados reportes a %s por caida de servidor' % name)
             elif already_reported and user_id != loved:
                 cur.execute('DELETE FROM Reports WHERE Reported = %s AND UserId = %s', (str(loved), str(user_id)))
                 bot.send_message(group_id, '❤️️ %s recibió mucho amor (Reportes: %d)' % (name, num_reportes - 1))
