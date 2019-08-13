@@ -11,10 +11,15 @@ DB_HOST = variables.DB_HOST
 DB_USER = variables.DB_USER
 DB_PASS = variables.DB_PASS
 DB_NAME = variables.DB_NAME
+DB_PORT = variables.DB_PORT
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+
+def create_connection():
+    return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME, port=DB_PORT)
 
 
 def filter_report(msg):
@@ -23,7 +28,7 @@ def filter_report(msg):
 
 def clear_report_data(reported):
     user_data = variables.user_data_dict[reported]
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
@@ -42,7 +47,7 @@ def clear_report_data(reported):
 
 def get_name(user_id):
     username = 'Anon'
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT Name FROM Users WHERE UserId = %s', (str(user_id),))
@@ -58,7 +63,7 @@ def get_name(user_id):
 
 def get_user_id(name):
     user_id = 0
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT UserId FROM Users WHERE Name = %s', (str(name),))
@@ -74,7 +79,7 @@ def get_user_id(name):
 
 def is_from_group(user_id):
     result = False
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT EXISTS(SELECT 1 FROM Users WHERE UserId = %s)', (str(user_id),))
@@ -89,7 +94,7 @@ def is_from_group(user_id):
 
 def get_names():
     names = []
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute('SELECT Name FROM Users')
@@ -109,7 +114,7 @@ def remove_message_from_group(bot, job):
 
 
 def create_database():
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = create_connection()
     try:
         with con.cursor() as cur:
             cur.execute(

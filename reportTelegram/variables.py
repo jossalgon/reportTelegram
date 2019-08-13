@@ -13,6 +13,7 @@ DB_HOST = config['Database']['DB_HOST']
 DB_USER = config['Database']['DB_USER']
 DB_PASS = config['Database']['DB_PASS']
 DB_NAME = config['Database']['DB_NAME']
+DB_PORT = config['Database']['DB_PORT']
 
 user_data_dict = dict()
 
