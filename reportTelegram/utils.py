@@ -19,7 +19,13 @@ logger = logging.getLogger(__name__)
 
 
 def create_connection():
-    return pymysql.connect(host=DB_HOST, user=DB_USER, password=DB_PASS, database=DB_NAME, port=DB_PORT)
+    return pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME,
+        port=DB_PORT
+    )
 
 
 def filter_report(msg):

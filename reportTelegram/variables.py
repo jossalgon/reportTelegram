@@ -1,19 +1,20 @@
-import configparser
+import os
+from dotenv import load_dotenv
 
-config = configparser.ConfigParser()
-config.read('config.ini')
+load_dotenv()
 
-link = config['Telegram']['link']
-group_id = int(config['Telegram']['group_id'])
-admin_id = int(config['Telegram']['admin_id'])
-sticker = config['Telegram']['sticker']
+# Telegram configuration
+link = os.getenv('TELEGRAM_LINK')
+group_id = int(os.getenv('TELEGRAM_GROUP_ID'))
+admin_id = int(os.getenv('TELEGRAM_ADMIN_ID'))
+sticker = os.getenv('TELEGRAM_STICKER')
 
-
-DB_HOST = config['Database']['DB_HOST']
-DB_USER = config['Database']['DB_USER']
-DB_PASS = config['Database']['DB_PASS']
-DB_NAME = config['Database']['DB_NAME']
-DB_PORT = config['Database']['DB_PORT']
+# Database configuration
+DB_HOST = os.getenv('DB_HOST')
+DB_USER = os.getenv('DB_USER')
+DB_PASS = os.getenv('DB_PASS')
+DB_NAME = os.getenv('DB_NAME')
+DB_PORT = int(os.getenv('DB_PORT', '3306'))
 
 user_data_dict = dict()
 

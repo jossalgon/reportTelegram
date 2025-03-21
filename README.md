@@ -13,22 +13,21 @@ Or you can install from source:
   $ python setup.py install
   ```
 
-2. Create a config.ini file:
+2. Create a `.env` file based on the `.env.template`:
 
   ```
-  [Telegram]
-  token_id = YOUR_TELEGRAM_BOT_TOKEN
-  link = YOUR_GROUP_LINK
-  group_id =  YOUR_GROUP_ID
-  admin_id = THE_ADMIN_ID
-  sticker = banned
-  
-  [Database]
-  DB_HOST = YOUR_DB_HOST
-  DB_USER = YOUR_DB_USER
-  DB_PASS = YOUR_DB_PASS
-  DB_NAME = YOUR_DB_NAME
-  DB_PORT = YOUR_DB_PORT
+  # Telegram Configuration
+  TELEGRAM_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
+  TELEGRAM_LINK=YOUR_GROUP_LINK
+  TELEGRAM_GROUP_ID=YOUR_GROUP_ID
+  TELEGRAM_ADMIN_ID=THE_ADMIN_ID
+  TELEGRAM_STICKER=banned
+
+  # Database Configuration
+  DB_HOST=YOUR_DB_HOST
+  DB_PASS=YOUR_DB_PASS
+  DB_NAME=YOUR_DB_NAME
+  DB_PORT=YOUR_DB_PORT
   ```
 
 3. Run the bot

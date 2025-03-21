@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-import configparser
+import os
 import logging
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Updater, CommandHandler
@@ -10,10 +10,7 @@ from reportTelegram import reports
 from reportTelegram import variables
 from reportTelegram import utils
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-TG_TOKEN = config['Telegram']['token']
+TG_TOKEN = os.getenv('TELEGRAM_TOKEN')
 
 admin_id = variables.admin_id
 group_id = variables.group_id

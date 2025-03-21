@@ -25,7 +25,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_stats():
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME
+    )
     stats = ''
     try:
         with con.cursor() as cur:
