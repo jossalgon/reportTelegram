@@ -38,7 +38,7 @@ def clear_report_data(reported):
     user_data = variables.user_data_dict[reported]
     con = create_connection()
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute('DELETE FROM Reports WHERE Reported = %s', (str(reported),))
     except Exception:
         logger.error('Fatal error in clear_report_data', exc_info=True)
@@ -57,10 +57,10 @@ def get_name(user_id):
     username = 'Anon'
     con = create_connection()
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute('SELECT Name FROM Users WHERE UserId = %s', (str(user_id),))
             if cur.rowcount:
-                username = cur.fetchone()[0]
+                username = cur.fetchone()['Name']
     except Exception:
         logger.error('Fatal error in get_name', exc_info=True)
     finally:
@@ -73,10 +73,10 @@ def get_user_id(name):
     user_id = 0
     con = create_connection()
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute('SELECT UserId FROM Users WHERE Name = %s', (str(name),))
             if cur.rowcount:
-                user_id = int(cur.fetchone()[0])
+                user_id = int(cur.fetchone()['UserId'])
     except Exception:
         logger.error('Fatal error in get_user_id', exc_info=True)
     finally:
@@ -89,9 +89,9 @@ def is_from_group(user_id):
     result = False
     con = create_connection()
     try:
-        with con.cursor() as cur:
-            cur.execute('SELECT EXISTS(SELECT 1 FROM Users WHERE UserId = %s)', (str(user_id),))
-            result = bool(cur.fetchone()[0])
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute('SELECT EXISTS(SELECT 1 FROM Users WHERE UserId = %s) as exists_user', (str(user_id),))
+            result = bool(cur.fetchone()['exists_user'])
     except Exception:
         logger.error('Fatal error in is_from_group', exc_info=True)
     finally:
@@ -104,11 +104,11 @@ def get_names():
     names = []
     con = create_connection()
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute('SELECT Name FROM Users')
             rows = cur.fetchall()
             for row in rows:
-                names.append(row[0])
+                names.append(row['Name'])
     except Exception as exception:
         print(exception)
     finally:
@@ -124,7 +124,7 @@ def remove_message_from_group(bot, job):
 def create_database():
     con = create_connection()
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute(
                 "CREATE TABLE IF NOT EXISTS `Reports` ( \
                   `Reported` int(11) NOT NULL, \
