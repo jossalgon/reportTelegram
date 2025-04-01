@@ -70,7 +70,12 @@ def send_stats(bot, update, message_id=None, chat_id=None):
 
 
 def get_top_kicks():
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME
+    )
     try:
         with con.cursor() as cur:
             cur.execute(
@@ -89,7 +94,12 @@ def get_top_kicks():
 
 def who(user_id):
     reportados = 'En total has reportado a:'
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME
+    )
     try:
         with con.cursor() as cur:
             cur.execute('SELECT Reported FROM Reports WHERE UserId = %s', (str(user_id),))
@@ -134,7 +144,12 @@ def counter(bot, name, reported, job_queue):
     bot.kick_chat_member(group_id, reported, until_date=int(time.time()+user_data['ban_time']))
     user_data['unkick_job'] = job_queue.run_once(send_invitation, user_data['ban_time'],
                                                  context={'user_data': user_data, 'reported': reported, 'name': name})
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME
+    )
     try:
         with con.cursor() as cur:
             cur.execute('UPDATE Flamers SET Kicks = Kicks + 1 WHERE UserId = %s', (str(reported),))
@@ -174,7 +189,12 @@ def send_invitation(bot, job):
 
 def send_report(bot, user_id, reported, job_queue):
     name = utils.get_name(reported)
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME
+    )
     try:
         with con.cursor() as cur:
             cur.execute('SELECT COUNT(*) FROM Reports WHERE Reported = %s', (str(reported),))
@@ -207,7 +227,12 @@ def send_report(bot, user_id, reported, job_queue):
 
 def send_love(bot, user_id, loved, job_queue):
     name = utils.get_name(loved)
-    con = pymysql.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+    con = pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME
+    )
     try:
         with con.cursor() as cur:
             cur.execute('SELECT COUNT(*) FROM Reports WHERE Reported = %s', (str(loved),))
