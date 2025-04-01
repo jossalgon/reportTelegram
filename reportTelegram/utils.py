@@ -1,6 +1,7 @@
 import logging
 
 import pymysql
+import pymysql.cursors
 
 from reportTelegram import variables
 
@@ -24,7 +25,8 @@ def create_connection():
         user=DB_USER,
         password=DB_PASS,
         database=DB_NAME,
-        port=DB_PORT
+        port=DB_PORT,
+        cursorclass=pymysql.cursors.DictCursor
     )
 
 

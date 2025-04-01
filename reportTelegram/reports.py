@@ -5,6 +5,7 @@ import pkgutil
 import threading
 import time
 import pymysql
+import pymysql.cursors
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 from reportTelegram import utils
@@ -25,21 +26,16 @@ logger = logging.getLogger(__name__)
 
 
 def get_stats():
-    con = pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASS,
-        database=DB_NAME
-    )
+    con = utils.create_connection()
     stats = ''
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute(
-                'SELECT COUNT(reported), Name FROM Users u LEFT OUTER JOIN Reports r ON u.UserId = r.reported GROUP BY Name ORDER BY Name')
+                'SELECT COUNT(reported) as count, Name FROM Users u LEFT OUTER JOIN Reports r ON u.UserId = r.reported GROUP BY Name ORDER BY Name')
             rows = cur.fetchall()
             for row in rows:
-                num_reportes = row[0]
-                name = row[1]
+                num_reportes = row['count']
+                name = row['Name']
                 if num_reportes == variables.num_reports - 1:
                     stats += '\n*%d --> %s*' % (num_reportes, name)
                 else:
@@ -70,20 +66,15 @@ def send_stats(bot, update, message_id=None, chat_id=None):
 
 
 def get_top_kicks():
-    con = pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASS,
-        database=DB_NAME
-    )
+    con = utils.create_connection()
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute(
                 'SELECT Name, Kicks FROM Users u INNER JOIN Flamers f ON u.UserId = f.UserId GROUP BY Name, Kicks ORDER BY Kicks DESC')
             rows = cur.fetchall()
-            top = '😈 Top Seres Oscuros:\n*1º - %s (%d kicks)*\n' % (rows[0][0], rows[0][1])
+            top = '😈 Top Seres Oscuros:\n*1º - %s (%d kicks)*\n' % (rows[0]['Name'], rows[0]['Kicks'])
             for row, pos in zip(rows[1:], range(2, 13)):
-                top += '%dº - %s (%d kicks)\n' % (pos, row[0], row[1])
+                top += '%dº - %s (%d kicks)\n' % (pos, row['Name'], row['Kicks'])
             return top
     except Exception:
         logger.error('Fatal error in get_top_kicks', exc_info=True)
@@ -94,22 +85,16 @@ def get_top_kicks():
 
 def who(user_id):
     reportados = 'En total has reportado a:'
-    con = pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASS,
-        database=DB_NAME
-    )
+    con = utils.create_connection()
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute('SELECT Reported FROM Reports WHERE UserId = %s', (str(user_id),))
             rows = cur.fetchall()
-            for row_l in rows:
-                row = row_l[0]
-                if row == rows[0][0]:
-                    reportados += ' %s' % utils.get_name(row)
+            for row in rows:
+                if row == rows[0]:
+                    reportados += ' %s' % utils.get_name(row['Reported'])
                 else:
-                    reportados += ', %s' % utils.get_name(row)
+                    reportados += ', %s' % utils.get_name(row['Reported'])
             if len(rows) > 0:
                 return reportados
             else:
@@ -144,14 +129,9 @@ def counter(bot, name, reported, job_queue):
     bot.kick_chat_member(group_id, reported, until_date=int(time.time()+user_data['ban_time']))
     user_data['unkick_job'] = job_queue.run_once(send_invitation, user_data['ban_time'],
                                                  context={'user_data': user_data, 'reported': reported, 'name': name})
-    con = pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASS,
-        database=DB_NAME
-    )
+    con = utils.create_connection()
     try:
-        with con.cursor() as cur:
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
             cur.execute('UPDATE Flamers SET Kicks = Kicks + 1 WHERE UserId = %s', (str(reported),))
             con.commit()
             sti = io.BufferedReader(io.BytesIO(pkgutil.get_data('reportTelegram', 'data/stickers/%s.webp' % STICKER)))
@@ -189,19 +169,14 @@ def send_invitation(bot, job):
 
 def send_report(bot, user_id, reported, job_queue):
     name = utils.get_name(reported)
-    con = pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASS,
-        database=DB_NAME
-    )
+    con = utils.create_connection()
     try:
-        with con.cursor() as cur:
-            cur.execute('SELECT COUNT(*) FROM Reports WHERE Reported = %s', (str(reported),))
-            num_reportes = int(cur.fetchone()[0])
-            cur.execute('SELECT COUNT(*) FROM Reports WHERE Reported = %s AND UserId = %s',
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute('SELECT COUNT(*) as count FROM Reports WHERE Reported = %s', (str(reported),))
+            num_reportes = int(cur.fetchone()['count'])
+            cur.execute('SELECT COUNT(*) as count FROM Reports WHERE Reported = %s AND UserId = %s',
                         (str(reported), str(user_id)))
-            already_reported = bool(cur.fetchone()[0])
+            already_reported = bool(cur.fetchone()['count'])
             if bot.get_chat_member(group_id, reported).status == 'kicked':
                 bot.send_message(group_id, 'Ensañamiento!!!')
             elif num_reportes == variables.num_reports:  # Si no está kicked pero tiene los 5 reportes
@@ -227,19 +202,14 @@ def send_report(bot, user_id, reported, job_queue):
 
 def send_love(bot, user_id, loved, job_queue):
     name = utils.get_name(loved)
-    con = pymysql.connect(
-        host=DB_HOST,
-        user=DB_USER,
-        password=DB_PASS,
-        database=DB_NAME
-    )
+    con = utils.create_connection()
     try:
-        with con.cursor() as cur:
-            cur.execute('SELECT COUNT(*) FROM Reports WHERE Reported = %s', (str(loved),))
-            num_reportes = int(cur.fetchone()[0])
-            cur.execute('SELECT COUNT(*) FROM Reports WHERE Reported = %s AND UserId = %s',
+        with con.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute('SELECT COUNT(*) as count FROM Reports WHERE Reported = %s', (str(loved),))
+            num_reportes = int(cur.fetchone()['count'])
+            cur.execute('SELECT COUNT(*) as count FROM Reports WHERE Reported = %s AND UserId = %s',
                         (str(loved), str(user_id)))
-            already_reported = bool(cur.fetchone()[0])
+            already_reported = bool(cur.fetchone()['count'])
             if bot.get_chat_member(group_id, loved).status == 'kicked':
                 bot.send_message(group_id, 'Abrazos!!!')
             elif num_reportes == variables.num_reports:  # Si no está kicked pero tiene los 5 reportes
@@ -257,6 +227,7 @@ def send_love(bot, user_id, loved, job_queue):
     finally:
         if con:
             con.commit()
+            con.close()
 
 
 def callback_query_handler(bot, update, user_data, job_queue, chat_data):
