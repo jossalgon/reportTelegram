@@ -114,8 +114,11 @@ def counter(bot, name, reported, job_queue):
     if chat_member.status == 'kicked':
         if 'ban_time' in user_data and user_data['ban_time'] > 0:
             user_data['ban_time'] += variables.ban_time
+        else:
+            user_data['ban_time'] = variables.ban_time
         bot.kick_chat_member(group_id, reported, until_date=int(chat_member.until_date.timestamp()+variables.ban_time))
-        user_data['unkick_job'].stop()
+        if 'unkick_job' in user_data:
+            user_data['unkick_job'].schedule_removal()
         user_data['unkick_job'] = job_queue.run_once(send_invitation, user_data['ban_time'],
                                                      context={'user_data': user_data, 'reported': reported,
                                                               'name': name})
@@ -177,8 +180,11 @@ def send_report(bot, user_id, reported, job_queue):
             cur.execute('SELECT COUNT(*) as count FROM Reports WHERE Reported = %s AND UserId = %s',
                         (str(reported), str(user_id)))
             already_reported = bool(cur.fetchone()['count'])
-            if bot.get_chat_member(group_id, reported).status == 'kicked':
+            status = bot.get_chat_member(group_id, reported).status
+            if status == 'kicked':
                 bot.send_message(group_id, 'Ensañamiento!!!')
+            elif status == 'left':
+                bot.send_message(group_id, '%s ya no está en el grupo, no se le puede reportar' % name)
             elif num_reportes == variables.num_reports:  # Si no está kicked pero tiene los 5 reportes
                 utils.clear_report_data(reported)
                 bot.send_message(group_id, 'Limpiados reportes a %s por caida de servidor' % name)
