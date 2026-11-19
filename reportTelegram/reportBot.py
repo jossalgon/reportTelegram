@@ -10,7 +10,7 @@ from reportTelegram import reports
 from reportTelegram import variables
 from reportTelegram import utils
 
-TG_TOKEN = os.getenv('TELEGRAM_TOKEN')
+TG_TOKEN = os.getenv('9098836145:AAEOAytKFG9vhkCC89ZkD0Izr4_LXqWSsYA')
 
 admin_id = variables.admin_id
 group_id = variables.group_id
